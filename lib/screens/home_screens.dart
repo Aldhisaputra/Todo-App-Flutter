@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todo_app/models/task.dart';
+import 'package:todo_app/screens/add_task_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,7 +24,22 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text("My Tasks"),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () async {
+              final newTaskTitle = await Navigator.push<String>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return AddTaskScreen();
+                  },
+                ),
+              );
+
+              if (newTaskTitle != null && newTaskTitle.isNotEmpty) {
+                setState(() {
+                  tasks.add(Task(title: newTaskTitle));
+                });
+              }
+            },
             icon: Icon(Icons.add),
           ),
         ],
