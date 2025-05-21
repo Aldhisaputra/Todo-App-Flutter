@@ -48,28 +48,45 @@ class _HomeScreenState extends State<HomeScreen> {
         itemCount: tasks.length,
         itemBuilder: (context, index) {
           final task = tasks[index];
-          return ListTile(
-            leading: Icon(
-              task.isDone ? Icons.check_box : Icons.check_box_outline_blank,
+          return Dismissible(
+            key: Key(task.title + index.toString()),  // Key harus unik, jadi tambah index juga
+            direction: DismissDirection.endToStart,
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Icon(Icons.delete, color: Colors.white),
             ),
-            title: Text(task.title),
-          onTap: () async {
-  final editedTaskTitle = await Navigator.push<String>(
-    context,
-    MaterialPageRoute(
-      builder: (context) {
-        return AddTaskScreen(existingTitle: tasks[index].title);
-      },
-    ),
-  );
+            onDismissed: (direction) {
+              setState(() {
+                tasks.removeAt(index);
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Task Deleted")),
+              );
+            },
+            child: ListTile(
+              leading: Icon(
+                task.isDone ? Icons.check_box : Icons.check_box_outline_blank,
+              ),
+              title: Text(task.title),
+              onTap: () async {
+                final editedTaskTitle = await Navigator.push<String>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return AddTaskScreen(existingTitle: tasks[index].title);
+                    },
+                  ),
+                );
 
-  if (editedTaskTitle != null && editedTaskTitle.isNotEmpty) {
-    setState(() {
-      tasks[index].title = editedTaskTitle;
-    });
-  }
-},
-
+                if (editedTaskTitle != null && editedTaskTitle.isNotEmpty) {
+                  setState(() {
+                    tasks[index].title = editedTaskTitle;
+                  });
+                }
+              },
+            ),
           );
         },
       ),
