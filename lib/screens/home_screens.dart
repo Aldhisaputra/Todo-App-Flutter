@@ -53,6 +53,23 @@ class _HomeScreenState extends State<HomeScreen> {
               task.isDone ? Icons.check_box : Icons.check_box_outline_blank,
             ),
             title: Text(task.title),
+          onTap: () async {
+  final editedTaskTitle = await Navigator.push<String>(
+    context,
+    MaterialPageRoute(
+      builder: (context) {
+        return AddTaskScreen(existingTitle: tasks[index].title);
+      },
+    ),
+  );
+
+  if (editedTaskTitle != null && editedTaskTitle.isNotEmpty) {
+    setState(() {
+      tasks[index].title = editedTaskTitle;
+    });
+  }
+},
+
           );
         },
       ),

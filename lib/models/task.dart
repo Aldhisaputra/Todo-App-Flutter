@@ -1,5 +1,5 @@
 class Task {
-  final String title;
+  String title;
   bool isDone;
 
   Task({required this.title, this.isDone = false});
