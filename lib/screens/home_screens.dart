@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_app/models/task.dart';
 import 'package:todo_app/screens/add_task_screen.dart';
 
@@ -20,17 +21,21 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
-        title: Text("My Tasks"),
+        title: Text(
+          "My Tasks",
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 2,
         actions: [
           IconButton(
             onPressed: () async {
               final newTaskTitle = await Navigator.push<String>(
                 context,
                 MaterialPageRoute(
-                  builder: (context) {
-                    return AddTaskScreen();
-                  },
+                  builder: (context) => AddTaskScreen(),
                 ),
               );
 
@@ -40,56 +45,100 @@ class _HomeScreenState extends State<HomeScreen> {
                 });
               }
             },
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
+            color: Colors.black87,
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: tasks.length,
-        itemBuilder: (context, index) {
-          final task = tasks[index];
-          return Dismissible(
-            key: Key(task.title + index.toString()),  // Key harus unik, jadi tambah index juga
-            direction: DismissDirection.endToStart,
-            background: Container(
-              color: Colors.red,
-              alignment: Alignment.centerRight,
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Icon(Icons.delete, color: Colors.white),
-            ),
-            onDismissed: (direction) {
-              setState(() {
-                tasks.removeAt(index);
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Task Deleted")),
-              );
-            },
-            child: ListTile(
-              leading: Icon(
-                task.isDone ? Icons.check_box : Icons.check_box_outline_blank,
+      body: tasks.isEmpty
+          ? Center(
+              child: Text(
+                'No tasks yet!',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  color: Colors.grey,
+                ),
               ),
-              title: Text(task.title),
-              onTap: () async {
-                final editedTaskTitle = await Navigator.push<String>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return AddTaskScreen(existingTitle: tasks[index].title);
-                    },
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                final task = tasks[index];
+                return Dismissible(
+                  key: Key(task.title + index.toString()),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: const Icon(Icons.delete, color: Colors.white),
+                  ),
+                  onDismissed: (_) {
+                    setState(() {
+                      tasks.removeAt(index);
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Task Deleted")),
+                    );
+                  },
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      leading: Icon(
+                        task.isDone
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        color: task.isDone ? Colors.green : Colors.grey,
+                      ),
+                      title: Text(
+                        task.title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          decoration: task.isDone
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                        ),
+                      ),
+                      onTap: () async {
+                        final editedTaskTitle =
+                            await Navigator.push<String>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AddTaskScreen(
+                              existingTitle: task.title,
+                            ),
+                          ),
+                        );
+
+                        if (editedTaskTitle != null &&
+                            editedTaskTitle.isNotEmpty) {
+                          setState(() {
+                            tasks[index].title = editedTaskTitle;
+                          });
+                        }
+                      },
+                      onLongPress: () {
+                        setState(() {
+                          task.isDone = !task.isDone;
+                        });
+                      },
+                    ),
                   ),
                 );
-
-                if (editedTaskTitle != null && editedTaskTitle.isNotEmpty) {
-                  setState(() {
-                    tasks[index].title = editedTaskTitle;
-                  });
-                }
               },
             ),
-          );
-        },
-      ),
     );
   }
 }
