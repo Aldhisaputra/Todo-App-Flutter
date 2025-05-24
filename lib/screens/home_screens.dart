@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_app/models/task.dart';
 import 'package:todo_app/screens/add_task_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,12 +13,37 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<Task> tasks = [
-    Task(title: "Buy Groceries"),
-    Task(title: "Finish Flutter Project"),
-    Task(title: "Workout 30 Minutes"),
-    Task(title: "Workout 30 Minutes", isDone: true),
-  ];
+  final List<Task> tasks = [];
+
+  Future<void> saveTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final tasksJson = tasks
+        .map((task) => {"title": task.title, "isDone": task.isDone})
+        .toList();
+    prefs.setString("tasks", jsonEncode(tasksJson));
+  }
+
+  Future<void> loadTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final tasksString = prefs.getString("tasks");
+    if (tasksString != null) {
+      final List<dynamic> tasksJson = jsonDecode(tasksString);
+      setState(() {
+        tasks.clear();
+        tasks.addAll(
+          tasksJson.map(
+            (json) => Task(title: json["title"], isDone: json["isDone"]),
+          ),
+        );
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadTasks();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 setState(() {
                   tasks.add(Task(title: newTaskTitle));
                 });
+                saveTasks();
               }
             },
             icon: const Icon(Icons.add),
@@ -81,6 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     setState(() {
                       tasks.removeAt(index);
                     });
+                    saveTasks();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Task Deleted")),
                     );
@@ -127,12 +156,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           setState(() {
                             tasks[index].title = editedTaskTitle;
                           });
+                          saveTasks();
                         }
                       },
                       onLongPress: () {
                         setState(() {
                           task.isDone = !task.isDone;
                         });
+                        saveTasks();
                       },
                     ),
                   ),
